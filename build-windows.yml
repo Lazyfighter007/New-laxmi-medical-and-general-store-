@@ -1,0 +1,24 @@
+name: Build Windows Installer
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build EXE
+        run: py -m pip install pyinstaller && py -m PyInstaller --noconfirm --clean --onefile --windowed --name MedicalStore medical_store.py
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss'
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MedicalStoreSetup
+          path: Output/MedicalStoreSetup.exe
